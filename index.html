@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Protocolo de Pesquisa - UFSC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { font-family: "Plus Jakarta Sans", sans-serif; }
+      .bg-ufsc-blue { background-color: #004c99; }
+      .text-ufsc-blue { color: #004c99; }
+      .bg-ufsc-yellow { background-color: #ffcc00; }
+
+      .pergunta-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        scroll-margin-top: 130px;
+        border-left: 6px solid transparent;
+      }
+
+      .pergunta-card:focus-within {
+        border-left-color: #004c99;
+        transform: translateX(4px);
+        box-shadow: 0 10px 25px -5px rgba(0, 76, 153, 0.1);
+      }
+
+      .card-concluido { border-left-color: #22c55e !important; }
+      
+      .card-erro {
+        border: 2px solid #ef4444 !important;
+        border-left: 6px solid #ef4444 !important;
+        background-color: #fef2f2 !important;
+      }
+
+      input[type="radio"]:checked + .btn-inner {
+        background-color: #004c99;
+        color: white;
+        border-color: #004c99;
+      }
+
+      /* modal */
+      #custom-modal { transition: opacity 0.3s ease, visibility 0.3s; }
+      .modal-content { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    </style>
+  </head>
+  <body class="bg-[#f0f4f8] text-slate-900 antialiased">
+    
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display: none" onload="if (enviado) { showModal('Sucesso!', 'Os dados foram enviados com sucesso para a base de dados da UFSC.', 'success'); }"></iframe>
+
+    <div id="custom-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm invisible opacity-0">
+      <div class="modal-content scale-90 bg-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl text-center">
+        <div id="modal-icon" class="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full text-2xl"></div>
+        <h3 id="modal-title" class="text-xl font-extrabold text-slate-800 mb-2"></h3>
+        <p id="modal-text" class="text-slate-500 text-sm leading-relaxed mb-8"></p>
+        <button onclick="closeModal()" id="modal-btn" class="w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all active:scale-95"></button>
+      </div>
+    </div>
+
+    <header class="fixed top-0 left-0 w-full bg-ufsc-blue text-white shadow-xl z-50 border-b-4 border-ufsc-yellow">
+      <div class="max-w-3xl mx-auto px-4 py-3">
+        <div class="flex justify-between items-center text-xs">
+          <div class="max-w-[70%]">
+            <p class="font-black uppercase tracking-widest opacity-80 text-ufsc-yellow">UFSC - Mestrado</p>
+            <h1 class="font-extrabold truncate uppercase">Protocolo de Audição</h1>
+          </div>
+          <span id="progresso-texto" class="font-black bg-white/20 px-3 py-1 rounded-full">0/9</span>
+        </div>
+        <div class="mt-2 w-full bg-black/20 h-1.5 rounded-full overflow-hidden">
+          <div id="progresso-barra" class="bg-ufsc-yellow h-full w-0 transition-all duration-500"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto mt-24 px-4 pb-20">
+      <div class="bg-white p-6 rounded-2xl shadow-lg border-l-8 border-ufsc-blue mb-8">
+        <h2 class="text-lg font-extrabold text-ufsc-blue uppercase">
+
+          Ouvir bem é o primeiro passo para aprender.
+
+        </h2>
+
+        <p class="text-slate-600 mt-1 text-sm leading-snug text-balance">
+          </br>Este protocolo faz parte de uma pesquisa de mestrado da UFSC dedicada ao desenvolvimento auditivo infantil. Sua participação fornece dados fundamentais para mapear a saúde auditiva e aprimorar diagnósticos futuros. É técnico, direto e leva menos de 2 minutos.
+        </p>
+
+      </div> 
+
+      <form id="form-survey" action="https://docs.google.com/forms/d/e/1FAIpQLSf83EyybbvMmdLkXL6XHRQ6rl7g9Xv1iUbWE8ZDkRSejOWGxw/formResponse" method="POST" target="hidden_iframe">
+        <div id="lista-perguntas" class="space-y-4"></div>
+
+        <div class="mt-12">
+          <button type="button" onclick="validarEEnviar()" class="w-full bg-ufsc-blue text-white py-6 rounded-2xl font-black text-xl shadow-xl active:scale-95 uppercase tracking-widest border-b-4 border-blue-900">
+            Finalizar Protocolo
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <script src="perguntas.js"></script>
+
+    <script>
+      var enviado = false;
+
+      function build() {
+        var container = document.getElementById("lista-perguntas");
+        listaPerguntasSurvey.forEach(function (item, index) {
+          var card = document.createElement("div");
+          card.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-100 pergunta-card relative";
+          card.id = "card-" + index;
+
+          var content = `<p class="text-base font-bold mb-6 text-slate-800 leading-tight">${item.texto}</p>`;
+
+          if (item.id === 1975747358 || item.id === 1670252430) {
+            var type = item.id === 1670252430 ? "date" : "text";
+            content += `<input type="${type}" name="entry.${item.id}" oninput="calc(${index})" class="w-full p-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:border-ufsc-blue outline-none transition-all font-semibold text-sm">`;
+          } else {
+            var options = item.id === 267077128 ? ["Masculino", "Feminino"] : ["Sim", "Não"];
+            content += `<div class="grid grid-cols-2 gap-4">`;
+            options.forEach(function (opt) {
+              content += `
+                <label class="cursor-pointer group">
+                  <input type="radio" name="entry.${item.id}" value="${opt}" class="sr-only" onchange="calc(${index})">
+                  <div class="btn-inner flex items-center justify-center p-4 rounded-xl border-2 border-slate-100 bg-slate-50 font-black text-slate-400 transition-all text-sm uppercase">
+                    ${opt}
+                  </div>
+                </label>`;
+            });
+            content += `</div>`;
+          }
+          card.innerHTML = content;
+          container.appendChild(card);
+        });
+      }
+
+      function calc(idx) {
+        var total = 9, done = 0;
+        if (idx !== undefined) {
+          var card = document.getElementById("card-" + idx);
+          card.classList.remove("card-erro");
+          card.classList.add("card-concluido");
+        }
+
+        document.querySelectorAll('input[type="text"], input[type="date"]').forEach(i => { if (i.value) done++; });
+        var radios = [...new Set([...document.querySelectorAll('input[type="radio"]')].map(r => r.name))];
+        radios.forEach(name => { if (document.querySelector(`input[name="${name}"]:checked`)) done++; });
+
+        document.getElementById("progresso-barra").style.width = (done / total * 100) + "%";
+        document.getElementById("progresso-texto").innerText = done + "/9";
+
+        if (idx !== undefined && idx < 8) {
+          setTimeout(() => { document.getElementById("card-" + (idx + 1)).scrollIntoView({ behavior: "smooth" }); }, 600);
+        }
+      }
+
+      function showModal(title, text, type) {
+        var modal = document.getElementById('custom-modal');
+        var icon = document.getElementById('modal-icon');
+        var btn = document.getElementById('modal-btn');
+        
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-text').innerText = text;
+
+        if(type === 'success') {
+          icon.innerHTML = '✓';
+          icon.className = 'w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full text-2xl bg-green-100 text-green-600';
+          btn.className = 'w-full py-4 rounded-xl font-black uppercase bg-ufsc-blue text-white';
+          btn.innerText = 'Fechar e Reiniciar';
+        } else {
+          icon.innerHTML = '!';
+          icon.className = 'w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full text-2xl bg-red-100 text-red-600 font-serif';
+          btn.className = 'w-full py-4 rounded-xl font-black uppercase bg-slate-800 text-white';
+          btn.innerText = 'Entendido';
+        }
+
+        modal.classList.remove('invisible', 'opacity-0');
+        modal.querySelector('.modal-content').classList.remove('scale-90');
+        modal.querySelector('.modal-content').classList.add('scale-100');
+      }
+
+      function closeModal() {
+        if(enviado) window.location.reload();
+        var modal = document.getElementById('custom-modal');
+        modal.classList.add('invisible', 'opacity-0');
+        modal.querySelector('.modal-content').classList.remove('scale-100');
+        modal.querySelector('.modal-content').classList.add('scale-90');
+      }
+
+      function validarEEnviar() {
+        var pendentes = 0;
+        listaPerguntasSurvey.forEach((item, index) => {
+          var resp = false;
+          if (item.id === 1975747358 || item.id === 1670252430) {
+            if (document.querySelector(`input[name="entry.${item.id}"]`).value) resp = true;
+          } else {
+            if (document.querySelector(`input[name="entry.${item.id}"]:checked`)) resp = true;
+          }
+          if (!resp) {
+            document.getElementById('card-' + index).classList.add('card-erro');
+            pendentes++;
+          }
+        });
+
+        if (pendentes > 0) {
+          showModal('Campos Incompletos', `Ainda faltam ${pendentes} perguntas para serem respondidas.`, 'error');
+          document.querySelector('.card-erro').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          enviado = true;
+          document.getElementById("form-survey").submit();
+        }
+      }
+
+      build();
+    </script>
+  </body>
+</html>
